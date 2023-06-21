@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Nip_app</title>
+</head>
+<body>
+    <div class="container">
+            <div class="d-flex flex-column">
+                <div class="p-1"><label>Podaj NIP</label></div>
+                <div class="p-1"><input type="number" id="nip" /></div>
+                <div class="p-1"><button id="spr" class="btn btn-primary">Sprawdź</button></div>
+            </div>
+            <div id="response" class="d-flex flex-column">
+            </div>
+    </div>
+    <script>
+        $(document).on('keypress', '#nip', function (e) {
+            if ($(e.target).prop('value').length >= 10) {
+                if (e.keyCode != 32) { return false }
+            }
+        });
+
+        $('#spr').click(function (e) {
+            e.preventDefault();
+
+            var data = {
+                nip: $('#nip').val()
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "/Nip/GetSubjectInfo",
+                content: "application/json; charset=utf-8",
+                dataType: "text",
+                data: data,
+                success: function (d) {
+                    populateData(JSON.parse(d));
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.log("fail");
+                }
+            });
+        });
+
+        function populateData(d) {
+            document.getElementById("response").innerHTML = JSON.stringify(d);
+        }
+    </script>
+</body>
+
+</html>
