@@ -46,10 +46,20 @@ namespace NIP.Controllers
             }
 
             JObject subjectJson = JObject.Parse(subjectJsonString);
+
             if (!subjectJson.ContainsKey("result"))
                 return subjectJson.ToString(); ;
 
-            SubjectViewModel subjectViewModel = subjectJson.SelectToken("result.subject").ToObject<SubjectViewModel>();
+            SubjectViewModel subjectViewModel = new SubjectViewModel();
+            try
+            {
+                subjectViewModel = subjectJson.SelectToken("result.subject").ToObject<SubjectViewModel>();
+            }
+            catch (Exception)
+            {
+                return "{\"message\": \"Błąd podczas tworzenia modelu.\"}";
+            }
+
             subjectViewModel.requestdatetime = subjectJson.SelectToken("result.requestDateTime").ToString();
             subjectViewModel.requestid = subjectJson.SelectToken("result.requestId").ToString();
 
@@ -71,8 +81,8 @@ namespace NIP.Controllers
         private async Task<string> ZwrocNIp(string nip)
         {
             var date = DateTime.Now.ToString("yyyy-MM-dd");
-            var url = $"https://19988f09-ed3c-41c6-8cdb-086e693ae9d0.mock.pstmn.io/test1";
-            //var url = $"https://wl-api.mf.gov.pl/api/search/nip/{nip}?date={date}";
+            //var url = $"https://19988f09-ed3c-41c6-8cdb-086e693ae9d0.mock.pstmn.io/test1";
+            var url = $"https://wl-api.mf.gov.pl/api/search/nip/{nip}?date={date}";
             try
             {
                 using HttpClient client = new HttpClient();

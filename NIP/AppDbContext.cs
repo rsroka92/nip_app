@@ -16,7 +16,7 @@ namespace NIP
 
         public DbSet<Subject> subject { get; set; }
         public DbSet<Representative> representative { get; set; }
-        public DbSet<AccountNumber> accountNumber { get; set; }
+        public DbSet<AccountNumber> accountnumber { get; set; }
         public DbSet<Partner> partner { get; set; }
     }
 }
@@ -57,7 +57,7 @@ create table representative (
 
     create table accountNumber (
 	id serial,
-	accountNumber varchar(255),
+	number varchar(255),
         subjectnip varchar(10),
         PRIMARY KEY (id),
         CONSTRAINT fk_nip

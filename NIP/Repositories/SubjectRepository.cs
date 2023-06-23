@@ -22,8 +22,10 @@ namespace NIP.Repositories
                 await _context.SaveChangesAsync();
                 if (model.accountNumbers.Count > 0)
                 {
-                    model.accountNumbers.ForEach(x => x.subjectnip = model.nip);
-                    _context.accountNumber.AddRange(model.accountNumbers);
+                    foreach (var item in model.accountNumbers)
+                    {
+                        _context.accountnumber.Add(new Models.AccountNumber() { number = item, subjectnip = model.nip });
+                    }
                 }
                 if (model.representatives.Count > 0)
                 {

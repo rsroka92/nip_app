@@ -4,16 +4,89 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <title>Nip_app</title>
+    <style>
+        button {
+            border-collapse: collapse;
+            width: 25%;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            background-color: #ff9800;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            margin: auto;
+            margin-top: 50px;
+            margin-bottom: 50px;
+            border: 1px solid #fff;
+            font-weight: bold;
+            padding: 10px;
+            letter-spacing: 1px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            text-align: left;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            margin: auto;
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+
+            table th {
+                background-color: #ff9800;
+                color: #fff;
+                font-weight: bold;
+                padding: 10px;
+                letter-spacing: 1px;
+                border-top: 1px solid #fff;
+                border-bottom: 1px solid #ccc;
+            }
+
+            table tr:nth-child(even) td {
+                background-color: #f2f2f2;
+            }
+
+            table tr:hover td {
+                background-color: #ffedcc;
+            }
+
+            table td {
+                background-color: #fff;
+                padding: 10px;
+                border-bottom: 1px solid #ccc;
+                font-weight: bold;
+            }
+
+        .class-with25 {
+            width: 25%;
+        }
+
+        .class-with75 {
+            width: 75%;
+        }
+
+        .class-with100 {
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-            <div class="d-flex flex-column">
-                <div class="p-1"><label>Podaj NIP</label></div>
-                <div class="p-1"><input type="number" id="nip" /></div>
-                <div class="p-1"><button id="spr" class="btn btn-primary">Sprawdź</button></div>
-            </div>
-            <div id="response" class="d-flex flex-column">
-            </div>
+        <div class="d-flex flex-column">
+            <div class="p-1"><label>Podaj NIP</label></div>
+            <div class="p-1"><input type="number" id="nip" /></div>
+            <div class="p-1"><button id="spr">SPRAWDŹ</button></div>
+            <label id="warningInfo"></label>
+        </div>
+        <div id="response" class="d-flex flex-column">
+        </div>
     </div>
     <script>
         $(document).on('keypress', '#nip', function (e) {
@@ -25,8 +98,17 @@
         $('#spr').click(function (e) {
             e.preventDefault();
 
-            var data = {
-                nip: $('#nip').val()
+            let response = document.getElementById('response');
+            response.innerHTML = '';
+
+            let nip = document.getElementById("nip").value;
+            if (nip.length === 0) {
+                displayWarningInfo({ message: "Proszę podać NIP." });
+                return;
+            }
+
+            let data = {
+                nip: nip
             };
 
             $.ajax({
@@ -36,16 +118,133 @@
                 dataType: "text",
                 data: data,
                 success: function (d) {
-                    populateData(JSON.parse(d));
+                    let d1 = JSON.parse(d);
+                    if ("message" in d1) {
+                        displayWarningInfo(d1);
+                    }
+                    else {
+                        populateData(d1);
+                    }
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    console.log("fail");
+                    displayWarningInfo({ message: xhr });
                 }
             });
         });
+        let dictMainNames = {
+            dictNames: {
+                name: "Nazwa",
+                nip: "NIP",
+                statusVat: "Status VAT",
+                regon: "Regon",
+                pesel: "Pesel",
+                krs: "KRS",
+                residenceAddress: "Adres zamieszkania",
+                workingAddress: "Adres pracy",
+                representatives: "Przedstawiciele",
+                authorizedClerks: "Upoważnieni urzędnicy",
+                partners: "Partnerzy",
+                registrationLegalDate: "Data zarejestrowania podmiotu",
+                registrationDenialBasis: "Podstawa prawna odmowy zarejestrowania",
+                registrationDenialDate: "Data odmowy zarejestrowania",
+                restorationBasis: "Podstawa prawna odnowienia zarejestrowania",
+                restorationDate: "Data odnowienia zarejestrowania",
+                removalBasis: "Podstawa prawna usunięcia",
+                removalDate: "Data usunięcia",
+                accountNumbers: "Numery kont",
+                hasVirtualAccounts: "Czy posiada wirtualne konta"
+            },
+            representatives: {
+                companyName: "Nazwa firmy",
+                firstName: "Imię",
+                lastName: "Nazwisko",
+                nip: "NIP",
+                pesel: "Pesel"
+            },
+            partners: {
+                companyName: "Nazwa firmy",
+                firstName: "Imię",
+                lastName: "Nazwisko",
+                nip: "NIP",
+                pesel: "Pesel"
+            },
+            accountNumbers: {
+                accountNumber: "Numer konta"
+            }
+        }
+
+        function displayWarningInfo(d) {
+            let warningLabel = document.createElement("label");
+            warningLabel.innerText = d.message;
+            response.appendChild(warningLabel);
+        }
 
         function populateData(d) {
-            document.getElementById("response").innerHTML = JSON.stringify(d);
+            let dane = d.result.subject;
+            let table = createTableFromJson(d.result.subject, '<th>NIP</th><th>' + dane.nip + '</th>');
+            response.appendChild(table);
+        }
+
+        function createTableFromJson(json, thText) {
+            let table = document.createElement('table');
+            let trTh = document.createElement('tr');
+            trTh.innerHTML = thText;
+            table.appendChild(trTh);
+            for (var key in json) {
+                if (Array.isArray(json[key])) {
+                    let tr = document.createElement('tr');
+                    let td = document.createElement("td");
+                    td.innerText = dictMainNames.dictNames[key];
+
+                    tr.appendChild(td);
+
+                    let tdSmallTable = document.createElement("td");
+                    if (json[key].length > 0) {
+                        let tr2 = document.createElement('tr');
+                        let accNumber = false;
+                        for (var arr in dictMainNames[key]) {
+                            let th = document.createElement("th");
+                            th.innerText = dictMainNames[key][arr];
+                            if (dictMainNames[key][arr] === "Numer konta")
+                                accNumber = true;
+                            tr2.appendChild(th);
+                        }
+                        tdSmallTable.appendChild(tr2);
+                        for (var arr in json[key]) {
+                            let tr1 = document.createElement('tr');
+                            if (!accNumber) {
+                                for (var val in json[key][arr]) {
+                                    let td1 = document.createElement("td");
+                                    if (json[key][arr][val] !== null)
+                                        td1.innerText = json[key][arr][val];
+                                    else
+                                        td1.innerText = "-";
+                                    tr1.appendChild(td1);
+                                }
+                            }
+                            else {
+                                let td1 = document.createElement("td");
+                                td1.innerText = json[key][arr];
+                                tr1.appendChild(td1);
+                            }
+                            tdSmallTable.appendChild(tr1);
+                        }
+                    }
+                    else
+                        tdSmallTable.innerText = "-";
+                    tr.appendChild(tdSmallTable);
+                    table.appendChild(tr);
+                }
+                else {
+                    let tr = document.createElement('tr');
+                    let value = "-";
+                    if (json[key] !== null)
+                        value = json[key];
+                    tr.innerHTML = '<td>' + dictMainNames.dictNames[key] + '</td><td>' + value + '</td>';
+                    table.appendChild(tr);
+                }
+            }
+            return table;
         }
     </script>
 </body>
